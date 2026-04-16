@@ -4,6 +4,7 @@ import { SocialProof } from "@/components/features/SocialProof";
 import { FeaturesGrid } from "@/components/features/FeaturesGrid";
 import { BeforeAfterDemo } from "@/components/features/BeforeAfterDemo";
 import { Pricing } from "@/components/features/Pricing";
+import { Footer } from "@/components/layout/Footer";
 
 export default function Home() {
   return (
@@ -15,8 +16,8 @@ export default function Home() {
         <FeaturesGrid />
         <BeforeAfterDemo />
         <Pricing />
-        {/* Footer buraya eklenecek */}
       </main>
+      <Footer />
     </>
   );
 }
