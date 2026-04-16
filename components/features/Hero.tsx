@@ -1,0 +1,204 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { Upload, ArrowRight, Play, ImageIcon, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+
+const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/gif"];
+
+export function Hero() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+
+  function handleFile(file: File) {
+    if (!ACCEPTED.includes(file.type)) return;
+    setFileName(file.name);
+    // Adım 5'te: dönüşüm fonksiyonu burada çağrılacak
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }
+
+  function onInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  }
+
+  return (
+    <section className="relative overflow-hidden py-20 sm:py-28 lg:py-36">
+      {/* Gradient mesh arka plan */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-brand-purple/20 blur-[120px]" />
+        <div className="absolute top-20 right-0 h-[400px] w-[400px] rounded-full bg-brand-cyan/10 blur-[100px]" />
+        <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-brand-teal/10 blur-[80px]" />
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-16">
+          {/* Sol: Metin */}
+          <div className="flex-1 text-center lg:text-left">
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-4 py-1.5 text-sm text-brand-purple"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              AI Destekli Vektörizasyon
+            </motion.div>
+
+            {/* Başlık */}
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className="mb-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+            >
+              Pixel&apos;den{" "}
+              <span className="bg-gradient-to-r from-brand-purple to-brand-cyan bg-clip-text text-transparent">
+                Vector&apos;e
+              </span>
+              ,<br />
+              saniyeler içinde
+            </motion.h1>
+
+            {/* Alt başlık */}
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mb-8 max-w-xl text-base text-muted-foreground sm:text-lg lg:mx-0"
+            >
+              AI destekli vektörizasyon. Tarayıcıda anlık önizleme, sunucuda
+              yüksek kalite. Vectorizer.ai&apos;ye güçlü alternatif — ücretsiz
+              başla.
+            </motion.p>
+
+            {/* CTA Butonlar */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="flex flex-wrap items-center justify-center gap-3 lg:justify-start"
+            >
+              <Link
+                href="#upload"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90 transition-all hover:scale-[1.02] border-0 gap-2"
+                )}
+              >
+                Ücretsiz Dene
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Button variant="ghost" size="lg" className="gap-2" onClick={() => {
+                document.getElementById("compare")?.scrollIntoView({ behavior: "smooth" });
+              }}>
+                <Play className="h-4 w-4" />
+                Nasıl Çalışır
+              </Button>
+            </motion.div>
+
+            {/* Küçük sosyal kanıt */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mt-6 text-xs text-muted-foreground"
+            >
+              Kredi kartı gerekmez · Üyelik gerekmez · Anında dene
+            </motion.p>
+          </div>
+
+          {/* Sağ: Upload alanı */}
+          <motion.div
+            id="upload"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="w-full max-w-md flex-shrink-0"
+          >
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={onDrop}
+              onClick={() => inputRef.current?.click()}
+              className={[
+                "relative cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-200",
+                "bg-background/60 backdrop-blur-sm",
+                dragOver
+                  ? "border-brand-purple bg-brand-purple/10 scale-[1.01]"
+                  : "border-border hover:border-brand-purple/50 hover:bg-brand-purple/5",
+              ].join(" ")}
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                accept={ACCEPTED.join(",")}
+                className="hidden"
+                onChange={onInputChange}
+              />
+
+              {/* İkon */}
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-purple/20 to-brand-cyan/20">
+                {fileName ? (
+                  <ImageIcon className="h-7 w-7 text-brand-purple" />
+                ) : (
+                  <Upload className="h-7 w-7 text-brand-purple" />
+                )}
+              </div>
+
+              {fileName ? (
+                <>
+                  <p className="mb-1 text-sm font-medium text-foreground truncate px-4">
+                    {fileName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Dönüşüm arayüzü Adım 5&apos;te eklenecek
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="mb-1 text-sm font-semibold text-foreground">
+                    Görseli sürükle ve bırak
+                  </p>
+                  <p className="mb-4 text-xs text-muted-foreground">
+                    ya da tıkla, dosya seç
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    {["PNG", "JPG", "WEBP", "BMP", "GIF"].map((fmt) => (
+                      <span
+                        key={fmt}
+                        className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+                      >
+                        {fmt}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Glassmorphism iç glow */}
+              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/5 to-transparent" />
+            </div>
+
+            {/* Alt bilgi */}
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              Max 10 MB · Görsel sunucuya gönderilmeden önizleme oluşturulur
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
