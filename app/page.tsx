@@ -2,6 +2,8 @@ import { Header } from "@/components/layout/Header";
 import { Hero } from "@/components/features/Hero";
 import { SocialProof } from "@/components/features/SocialProof";
 import { FeaturesGrid } from "@/components/features/FeaturesGrid";
+import { BeforeAfterDemo } from "@/components/features/BeforeAfterDemo";
+import { Pricing } from "@/components/features/Pricing";
 
 export default function Home() {
   return (
@@ -11,7 +13,9 @@ export default function Home() {
         <Hero />
         <SocialProof />
         <FeaturesGrid />
-        {/* Section'lar onaylandıkça buraya eklenecek */}
+        <BeforeAfterDemo />
+        <Pricing />
+        {/* Footer buraya eklenecek */}
       </main>
     </>
   );
