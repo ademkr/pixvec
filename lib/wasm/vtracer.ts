@@ -5,7 +5,8 @@ let initialized = false;
 async function init() {
   if (initialized) return;
   const mod = await import("vtracer-wasm");
-  await mod.default();
+  // Pass the public URL so Turbopack doesn't try to bundle the .wasm file
+  await mod.default("/wasm/vtracer.wasm");
   initialized = true;
 }
 
