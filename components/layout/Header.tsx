@@ -37,7 +37,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Link
-            href="#upload"
+            href="/app"
             className={cn(
               buttonVariants({ size: "sm" }),
               "bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90 transition-opacity border-0"

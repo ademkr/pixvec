@@ -91,7 +91,7 @@ export function Hero() {
               className="flex flex-wrap items-center justify-center gap-3 lg:justify-start"
             >
               <Link
-                href="#upload"
+                href="/app"
                 className={cn(
                   buttonVariants({ size: "lg" }),
                   "bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90 transition-all hover:scale-[1.02] border-0 gap-2"
