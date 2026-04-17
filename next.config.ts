@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["vtracer-wasm"],
-  },
+  serverExternalPackages: ["vtracer-wasm"],
 };
 
 export default nextConfig;
