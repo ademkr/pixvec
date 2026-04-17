@@ -11,16 +11,17 @@ async function init() {
 }
 
 export interface VTracerConfig {
-  colormode?: "color" | "binary";
+  binary?: boolean;
   hierarchical?: "stacked" | "cutout";
-  mode?: "spline" | "polygon" | "none";
-  filter_speckle?: number;
-  color_precision?: number;
-  layer_difference?: number;
-  corner_threshold?: number;
-  length_threshold?: number;
-  splice_threshold?: number;
-  path_precision?: number;
+  mode?: "spline" | "polygon" | "pixel";
+  filterSpeckle?: number;
+  colorPrecision?: number;
+  layerDifference?: number;
+  cornerThreshold?: number;
+  lengthThreshold?: number;
+  maxIterations?: number;
+  spliceThreshold?: number;
+  pathPrecision?: number;
 }
 
 export async function vectorize(
@@ -32,17 +33,20 @@ export async function vectorize(
 
   const pixels = new Uint8Array(imageData.data.buffer);
 
+  // Field names must be camelCase (serde rename_all = "camelCase")
+  // binary: bool (not colormode string), maxIterations is required
   const cfg = {
-    colormode: config.colormode ?? "color",
+    binary: config.binary ?? false,
     hierarchical: config.hierarchical ?? "stacked",
     mode: config.mode ?? "spline",
-    filter_speckle: config.filter_speckle ?? 4,
-    color_precision: config.color_precision ?? 6,
-    layer_difference: config.layer_difference ?? 16,
-    corner_threshold: config.corner_threshold ?? 60,
-    length_threshold: config.length_threshold ?? 4.0,
-    splice_threshold: config.splice_threshold ?? 45,
-    path_precision: config.path_precision ?? 8,
+    filterSpeckle: config.filterSpeckle ?? 4,
+    colorPrecision: config.colorPrecision ?? 6,
+    layerDifference: config.layerDifference ?? 16,
+    cornerThreshold: config.cornerThreshold ?? 60,
+    lengthThreshold: config.lengthThreshold ?? 4.0,
+    maxIterations: config.maxIterations ?? 10,
+    spliceThreshold: config.spliceThreshold ?? 45,
+    pathPrecision: config.pathPrecision ?? 8,
   };
 
   return mod.to_svg(pixels, imageData.width, imageData.height, cfg);
