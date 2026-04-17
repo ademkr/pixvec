@@ -139,3 +139,13 @@
     @apply font-sans;
   }
 }
+
+/* Safari backdrop-filter fix */
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px);
+  }
+}

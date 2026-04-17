@@ -63,8 +63,8 @@ function NewsletterBanner() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div className="rounded-2xl border border-brand-purple/20 bg-brand-purple/5 px-6 py-8 dark:bg-brand-purple/10 sm:px-10">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-10">
-            {/* Metin */}
-            <div className="flex-1 text-center sm:text-left">
+            {/* Metin — min-w-0 Safari flex collapse fix */}
+            <div className="min-w-0 flex-1 text-center sm:text-left">
               <h3 className="mb-1 text-lg font-semibold text-foreground">
                 Pixvec&apos;ten haberdar ol
               </h3>
@@ -88,7 +88,7 @@ function NewsletterBanner() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="email@adresin.com"
                       required
-                      className="h-9 flex-1 rounded-xl border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
+                      className="h-9 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
                     />
                     <button
                       type="submit"
@@ -124,9 +124,9 @@ export function Footer() {
 
       {/* 4 sütunlu grid */}
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-2 sm:px-6">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Sütun 1 — Marka */}
-          <div className="col-span-2 sm:col-span-2 lg:col-span-1">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+          {/* Sütun 1 — Marka: mobil+tablet tam genişlik, lg'de 1 sütun */}
+          <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="mb-3 flex items-center gap-2 font-bold text-lg">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-brand-purple to-brand-cyan">
                 <Zap className="h-3.5 w-3.5 text-white" />
