@@ -1,45 +1,24 @@
 "use client";
 
 import { useRef, useState } from "react";
-
-// Hardcoded exact config matching Rust struct fields (camelCase via serde rename_all)
-// Config { binary, mode, hierarchical, cornerThreshold, lengthThreshold,
-//          maxIterations, spliceThreshold, filterSpeckle, colorPrecision,
-//          layerDifference, pathPrecision }
-const HARDCODED_CONFIG = {
-  binary: false,
-  mode: "spline",
-  hierarchical: "stacked",
-  cornerThreshold: 60,
-  lengthThreshold: 4.0,
-  maxIterations: 10,
-  spliceThreshold: 45,
-  filterSpeckle: 4,
-  colorPrecision: 6,
-  layerDifference: 16,
-  pathPrecision: 8,
-};
+import { vectorize } from "@/lib/wasm/vtracer";
 
 export default function TestVectorizePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [svgOutput, setSvgOutput] = useState<string | null>(null);
-  const [log, setLog] = useState<string[]>([]);
+  const [elapsed, setElapsed] = useState<number | null>(null);
   const [status, setStatus] = useState<"idle" | "processing" | "done" | "error">("idle");
-
-  function addLog(msg: string) {
-    setLog((prev) => [...prev, msg]);
-    console.log(msg);
-  }
+  const [error, setError] = useState<string | null>(null);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setSvgOutput(null);
-    setLog([]);
+    setElapsed(null);
+    setError(null);
     setStatus("processing");
 
-    // Draw image to canvas
     const img = new Image();
     img.src = URL.createObjectURL(file);
     await new Promise((res) => { img.onload = res; });
@@ -51,33 +30,15 @@ export default function TestVectorizePage() {
     ctx.drawImage(img, 0, 0);
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    addLog(`ImageData: ${imageData.width} x ${imageData.height}, bytes: ${imageData.data.length}`);
 
     try {
-      // Step 1: import and init
-      addLog("Importing vtracer-wasm...");
-      const mod = await import("vtracer-wasm");
-      addLog(`Module keys: ${Object.keys(mod).join(", ")}`);
-      addLog(`to_svg type: ${typeof mod.to_svg}, length: ${mod.to_svg?.length}`);
-
-      addLog("Calling mod.default() to init WASM...");
-      await mod.default("/wasm/vtracer.wasm");
-      addLog("WASM init complete");
-
-      // Step 2: call to_svg
-      const pixels = new Uint8Array(imageData.data.buffer);
-      addLog(`pixels length: ${pixels.length}`);
-      addLog(`Config: ${JSON.stringify(HARDCODED_CONFIG)}`);
-
       const t0 = performance.now();
-      const svg = mod.to_svg(pixels, imageData.width, imageData.height, HARDCODED_CONFIG);
-      const elapsed = Math.round(performance.now() - t0);
-
-      addLog(`✓ Done in ${elapsed}ms, SVG length: ${svg.length}`);
+      const svg = await vectorize(imageData);
+      setElapsed(Math.round(performance.now() - t0));
       setSvgOutput(svg);
       setStatus("done");
     } catch (err) {
-      addLog(`✗ Error: ${String(err)}`);
+      setError(String(err));
       setStatus("error");
     }
   }
@@ -93,7 +54,7 @@ export default function TestVectorizePage() {
 
   return (
     <div style={{ padding: 24, fontFamily: "monospace" }}>
-      <h1 style={{ marginBottom: 16 }}>VTracer WASM — Minimum Test</h1>
+      <h1 style={{ marginBottom: 16 }}>VTracer WASM — Test Page</h1>
 
       <input
         type="file"
@@ -102,21 +63,19 @@ export default function TestVectorizePage() {
         style={{ marginBottom: 16, display: "block" }}
       />
 
-      {/* Log output */}
-      {log.length > 0 && (
-        <pre style={{
-          background: "#111", color: "#0f0", padding: 12,
-          borderRadius: 4, marginBottom: 16, fontSize: 12,
-          whiteSpace: "pre-wrap", maxHeight: 300, overflow: "auto"
-        }}>
-          {log.join("\n")}
-        </pre>
+      {status === "processing" && (
+        <p style={{ color: "#6C63FF", marginBottom: 12 }}>⏳ Processing...</p>
       )}
-
-      {status === "done" && (
-        <button onClick={downloadSvg} style={{ marginBottom: 16, cursor: "pointer", padding: "4px 12px" }}>
-          Download SVG
-        </button>
+      {status === "done" && elapsed !== null && (
+        <p style={{ color: "green", marginBottom: 12 }}>
+          ✓ Done in <strong>{elapsed} ms</strong>
+          <button onClick={downloadSvg} style={{ marginLeft: 12, cursor: "pointer", padding: "2px 10px" }}>
+            Download SVG
+          </button>
+        </p>
+      )}
+      {status === "error" && (
+        <p style={{ color: "red", marginBottom: 12 }}>✗ Error: {error}</p>
       )}
 
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
