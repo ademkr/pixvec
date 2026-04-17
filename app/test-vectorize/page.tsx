@@ -5,12 +5,42 @@ import { vectorize } from "@/lib/wasm/vtracer";
 
 type Engine = "vtracer" | "imagetracer";
 
+const IMAGETRACER_MAX = 200;
+
+function resizeImageData(src: ImageData, maxSize: number): ImageData {
+  const scale = Math.min(1, maxSize / Math.max(src.width, src.height));
+  const w = Math.round(src.width * scale);
+  const h = Math.round(src.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  // draw src via OffscreenCanvas trick: put pixels then drawImage
+  const tmp = document.createElement("canvas");
+  tmp.width = src.width;
+  tmp.height = src.height;
+  tmp.getContext("2d")!.putImageData(src, 0, 0);
+  ctx.drawImage(tmp, 0, 0, w, h);
+  return ctx.getImageData(0, 0, w, h);
+}
+
 async function runImageTracer(imageData: ImageData): Promise<string> {
+  const resized = resizeImageData(imageData, IMAGETRACER_MAX);
+  console.log("ImageTracer starting...", resized.width, resized.height);
   const mod = await import("imagetracerjs");
   const it = mod.default ?? mod;
-  return new Promise((resolve) => {
-    it.imagedataToSVG(imageData, "posterized2", resolve);
-  });
+  const result = await Promise.race([
+    new Promise<string>((resolve) => {
+      it.imagedataToSVG(resized, "posterized2", (svg: string) => {
+        console.log("ImageTracer complete");
+        resolve(svg);
+      });
+    }),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout: görsel çok büyük, küçültmeyi deneyin")), 30000)
+    ),
+  ]);
+  return result;
 }
 
 export default function TestVectorizePage() {
