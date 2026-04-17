@@ -36,7 +36,7 @@ function AfterPlaceholder() {
 
 export function BeforeAfterDemo() {
   // Gerçek görseller mevcut olduğunda bu flag'i true yap
-  const USE_REAL_IMAGES = false;
+  const USE_REAL_IMAGES = true;
 
   return (
     <section id="compare" className="py-12 sm:py-20 lg:py-28 bg-muted/20">
