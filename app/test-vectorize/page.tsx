@@ -99,7 +99,8 @@ export default function TestVectorizePage() {
           filterSpeckle: <strong>{filterSpeckle}</strong>
           <input
             type="range" min={0} max={10} value={filterSpeckle}
-            onChange={(e) => handleParamChange(+e.target.value, colorPrecision, mode)}
+            onChange={(e) => setFilterSpeckle(+e.target.value)}
+            onPointerUp={(e) => handleParamChange(+(e.target as HTMLInputElement).value, colorPrecision, mode)}
           />
         </label>
 
@@ -107,7 +108,8 @@ export default function TestVectorizePage() {
           colorPrecision: <strong>{colorPrecision}</strong>
           <input
             type="range" min={1} max={8} value={colorPrecision}
-            onChange={(e) => handleParamChange(filterSpeckle, +e.target.value, mode)}
+            onChange={(e) => setColorPrecision(+e.target.value)}
+            onPointerUp={(e) => handleParamChange(filterSpeckle, +(e.target as HTMLInputElement).value, mode)}
           />
         </label>
 
