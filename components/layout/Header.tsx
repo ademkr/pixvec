@@ -23,13 +23,13 @@ export function Header() {
         {/* Nav */}
         <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
           <Link href="#features" className="hover:text-foreground transition-colors">
-            Özellikler
+            Features
           </Link>
           <Link href="#pricing" className="hover:text-foreground transition-colors">
-            Fiyatlandırma
+            Pricing
           </Link>
           <Link href="/app" className="hover:text-foreground transition-colors">
-            Giriş
+            Sign In
           </Link>
         </nav>
 
@@ -43,7 +43,7 @@ export function Header() {
               "bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90 transition-opacity border-0"
             )}
           >
-            Ücretsiz Dene
+            Try Free
           </Link>
         </div>
       </div>

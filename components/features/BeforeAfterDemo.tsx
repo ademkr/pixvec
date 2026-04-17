@@ -15,7 +15,7 @@ function BeforePlaceholder() {
         BEFORE
       </span>
       <span className="rounded-md bg-zinc-300/60 px-3 py-1 text-xs text-zinc-500 dark:bg-zinc-700/60 dark:text-zinc-400">
-        Raster • 72×72px • Pikselleşmiş
+        Raster • 72×72px • Pixelated
       </span>
     </div>
   );
@@ -28,7 +28,7 @@ function AfterPlaceholder() {
         AFTER
       </span>
       <span className="rounded-md bg-white/20 px-3 py-1 text-xs text-white/80">
-        Vektör • SVG • Sonsuz Çözünürlük
+        Vector • SVG • Infinite Resolution
       </span>
     </div>
   );
@@ -51,16 +51,16 @@ export function BeforeAfterDemo() {
           className="mb-12 text-center"
         >
           <p className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-            Canlı Karşılaştırma
+            Live Comparison
           </p>
           <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
-            Farkı{" "}
+            See the{" "}
             <span className="bg-gradient-to-r from-brand-purple to-brand-cyan bg-clip-text text-transparent">
-              Gör
+              Difference
             </span>
           </h2>
           <p className="mx-auto max-w-lg text-muted-foreground">
-            Orijinal görsel ile vektörize edilmiş sonucu karşılaştırın — piksel piksel
+            Compare the original image with the vectorized result — pixel by pixel
           </p>
         </motion.div>
 
@@ -76,10 +76,10 @@ export function BeforeAfterDemo() {
               {/* Köşe etiketleri */}
               <div className="pointer-events-none absolute inset-0 z-10 flex items-start justify-between p-3">
                 <span className="rounded-lg bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                  Orijinal
+                  Original
                 </span>
                 <span className="rounded-lg bg-brand-purple/80 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                  Vektör
+                  Vector
                 </span>
               </div>
 
@@ -120,14 +120,14 @@ export function BeforeAfterDemo() {
               📷 Raster • 72×72 px
             </span>
             <span className="rounded-md bg-brand-purple/10 px-2.5 py-1 text-xs font-medium text-brand-purple">
-              ✦ SVG — ∞ çözünürlük
+              ✦ SVG — ∞ resolution
             </span>
           </div>
 
           {/* Gizlilik notu */}
           <div className="mt-5 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
             <Shield className="h-3.5 w-3.5 text-brand-emerald" />
-            Tarayıcınızda işlenir — görseliniz sunucuya gönderilmez
+            Processed in your browser — your image never reaches our servers
           </div>
         </motion.div>
       </div>

@@ -9,30 +9,30 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   {
-    heading: "Ürün",
+    heading: "Product",
     links: [
-      { label: "Özellikler",         href: "#features"     },
-      { label: "Fiyatlandırma",      href: "#pricing"      },
-      { label: "API Dokümantasyonu", href: "/docs"         },
-      { label: "Değişiklik Günlüğü", href: "/changelog"    },
+      { label: "Features",         href: "#features"  },
+      { label: "Pricing",          href: "#pricing"   },
+      { label: "API Documentation",href: "/docs"      },
+      { label: "Changelog",        href: "/changelog" },
     ],
   },
   {
-    heading: "Kaynaklar",
+    heading: "Resources",
     links: [
-      { label: "Blog",          href: "/blog"          },
-      { label: "Nasıl Çalışır", href: "/how-it-works"  },
-      { label: "SSS",           href: "/faq"           },
-      { label: "Destek",        href: "/support"       },
+      { label: "Blog",         href: "/blog"         },
+      { label: "How It Works", href: "/how-it-works" },
+      { label: "FAQ",          href: "/faq"          },
+      { label: "Support",      href: "/support"      },
     ],
   },
   {
-    heading: "Yasal",
+    heading: "Legal",
     links: [
-      { label: "Gizlilik Politikası", href: "/privacy"  },
-      { label: "Kullanım Şartları",   href: "/terms"    },
-      { label: "Çerez Politikası",    href: "/cookies"  },
-      { label: "KVKK / GDPR",         href: "/gdpr"     },
+      { label: "Privacy Policy",   href: "/privacy"  },
+      { label: "Terms of Service", href: "/terms"    },
+      { label: "Cookie Policy",    href: "/cookies"  },
+      { label: "GDPR",             href: "/gdpr"     },
     ],
   },
 ];
@@ -66,10 +66,10 @@ function NewsletterBanner() {
             {/* Metin — min-w-0 Safari flex collapse fix */}
             <div className="min-w-0 flex-1 text-center sm:text-left">
               <h3 className="mb-1 text-lg font-semibold text-foreground">
-                Pixvec&apos;ten haberdar ol
+                Stay in the loop
               </h3>
               <p className="text-sm text-muted-foreground">
-                Yeni özellikler, ipuçları ve güncellemeler — haftada en fazla bir e-posta.
+                New features, tips, and updates — at most one email a week.
               </p>
             </div>
 
@@ -77,7 +77,7 @@ function NewsletterBanner() {
             <div className="w-full max-w-sm flex-shrink-0">
               {submitted ? (
                 <p className="rounded-xl bg-brand-emerald/10 px-4 py-3 text-center text-sm font-medium text-brand-emerald">
-                  Teşekkürler! Listeye eklendin 🎉
+                  Thanks! You&apos;re on the list 🎉
                 </p>
               ) : (
                 <>
@@ -86,7 +86,7 @@ function NewsletterBanner() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="email@adresin.com"
+                      placeholder="you@example.com"
                       required
                       className="h-9 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand-purple focus:outline-none focus:ring-2 focus:ring-brand-purple/20"
                     />
@@ -97,12 +97,12 @@ function NewsletterBanner() {
                         "shrink-0 bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90 border-0 gap-1"
                       )}
                     >
-                      Abone Ol
+                      Subscribe
                       <ArrowRight className="h-3.5 w-3.5" />
                     </button>
                   </form>
                   <p className="mt-2 text-center text-xs text-muted-foreground sm:text-left">
-                    Spam yok. İstediğin zaman çık.
+                    No spam. Unsubscribe anytime.
                   </p>
                 </>
               )}
@@ -136,7 +136,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="mb-5 text-sm text-muted-foreground">
-              Pixel&apos;den vektöre, saniyeler içinde.
+              Pixel to vector, in seconds.
             </p>
             <div className="flex gap-3">
               {SOCIALS.map(({ icon: Icon, label, href }) => (
@@ -178,11 +178,11 @@ export function Footer() {
 
         {/* Alt çizgi */}
         <div className="mt-10 flex flex-col items-center justify-between gap-2 border-t border-border/40 pt-6 text-xs text-muted-foreground sm:flex-row">
-          <span>© 2026 Pixvec. Tüm hakları saklıdır.</span>
+          <span>© 2026 Pixvec. All rights reserved.</span>
           <span>
-            pixvec.co ile{" "}
+            Made with{" "}
             <span className="text-red-400">❤️</span>{" "}
-            yapıldı
+            pixvec.co
           </span>
         </div>
       </div>

@@ -23,11 +23,11 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Pixvec — AI-Powered Image Vectorizer",
+    default: "Pixvec — AI-Powered Image Vectorization",
     template: "%s | Pixvec",
   },
   description:
-    "Convert PNG, JPG, and WEBP images to high-quality SVG vectors instantly. Free tier available. No signup required.",
+    "Convert PNG, JPG images to SVG vectors instantly. Free browser preview, AI upscaling, multiple engines. No signup required.",
   keywords: [
     "image to svg",
     "png to vector",
@@ -43,16 +43,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://pixvec.co",
-    title: "Pixvec — AI-Powered Image Vectorizer",
+    title: "Pixvec — AI-Powered Image Vectorization",
     description:
-      "Convert PNG, JPG, and WEBP images to high-quality SVG vectors instantly.",
+      "Convert PNG, JPG images to SVG vectors instantly. Free browser preview, AI upscaling, multiple engines.",
     siteName: "Pixvec",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pixvec — AI-Powered Image Vectorizer",
+    title: "Pixvec — AI-Powered Image Vectorization",
     description:
-      "Convert PNG, JPG, and WEBP images to high-quality SVG vectors instantly.",
+      "Convert PNG, JPG images to SVG vectors instantly. Free browser preview, AI upscaling, multiple engines.",
   },
 };
 

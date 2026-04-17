@@ -23,18 +23,18 @@ interface Plan {
 const PLANS: Plan[] = [
   {
     id: "free",
-    name: "Ücretsiz",
-    price: "₺0",
-    description: "Üyelik gerekmez. Hemen dene.",
+    name: "Free",
+    price: "$0",
+    description: "No signup required. Try right now.",
     icon: Zap,
     features: [
-      "Günde 1 dönüşüm",
-      "VTracer motoru",
-      "SVG çıktı (filigranlı)",
-      "Tarayıcıda anlık önizleme",
-      "Sürükle & bırak yükleme",
+      "1 conversion per day",
+      "VTracer engine",
+      "SVG output (watermarked)",
+      "Instant browser preview",
+      "Drag & drop upload",
     ],
-    cta: "Hemen Dene",
+    cta: "Try Now",
     ctaHref: "#upload",
     highlighted: false,
   },
@@ -42,40 +42,40 @@ const PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     price: "$7.99",
-    period: "/ay",
-    description: "Ciddi tasarımcılar için sınırsız erişim.",
+    period: "/mo",
+    description: "Unlimited access for serious designers.",
     icon: Crown,
     features: [
-      "Sınırsız dönüşüm",
-      "Tüm vektörizasyon motorları",
+      "Unlimited conversions",
+      "All vectorization engines",
       "AI Upscaling pipeline",
-      "SVG, PDF, EPS, DXF çıktı",
-      "Filigransız indirme",
-      "Batch işlem (10 dosya/seferinde)",
-      "Temel SVG editör",
-      "E-posta desteği",
+      "SVG, PDF, EPS, DXF output",
+      "No watermark",
+      "Batch processing (10 files at once)",
+      "Basic SVG editor",
+      "Email support",
     ],
-    cta: "Pro'ya Geç",
+    cta: "Go Pro",
     ctaHref: "/app",
     highlighted: true,
-    badge: "En Popüler",
+    badge: "Most Popular",
   },
   {
     id: "api",
     name: "API",
     price: "$29.99",
-    period: "/ay",
-    description: "Geliştiriciler ve otomasyon için.",
+    period: "/mo",
+    description: "For developers and automation.",
     icon: Code,
     features: [
-      "Tüm Pro özellikleri",
-      "RESTful API erişimi",
-      "1.000 kredi/ay",
-      "Batch işlem (100 dosya/seferinde)",
-      "Webhook desteği",
-      "Öncelikli destek",
+      "All Pro features",
+      "RESTful API access",
+      "1,000 credits/month",
+      "Batch processing (100 files at once)",
+      "Webhook support",
+      "Priority support",
     ],
-    cta: "API Dokümantasyonu",
+    cta: "API Documentation",
     ctaHref: "/docs",
     highlighted: false,
   },
@@ -95,17 +95,17 @@ export function Pricing() {
           className="mb-12 text-center"
         >
           <p className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-            Fiyatlandırma
+            Pricing
           </p>
           <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
-            Basit,{" "}
+            Simple,{" "}
             <span className="bg-gradient-to-r from-brand-purple to-brand-cyan bg-clip-text text-transparent">
-              şeffaf
+              transparent
             </span>{" "}
-            fiyatlar
+            pricing
           </h2>
           <p className="mx-auto max-w-lg text-muted-foreground">
-            Kredi kartı gerekmez. Üyeliksiz dene, beğenirsen yükselt.
+            No credit card required. Try free, upgrade when you&apos;re ready.
           </p>
         </motion.div>
 
@@ -199,7 +199,7 @@ export function Pricing() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-10 text-center text-xs text-muted-foreground"
         >
-          Tüm planlar aylık faturalandırılır. İstediğin zaman iptal edebilirsin.
+          All plans are billed monthly. Cancel anytime.
         </motion.p>
       </div>
     </section>

@@ -40,10 +40,10 @@ function AnimatedStat({ end, suffix, label, duration = 1.8 }: StatProps) {
 }
 
 const STATS: StatProps[] = [
-  { end: 12400,  suffix: "+", label: "Dönüştürülen görsel" },
-  { end: 98,     suffix: "%", label: "Memnuniyet oranı" },
-  { end: 3,      suffix: "sn", label: "Ortalama önizleme süresi" },
-  { end: 4,      suffix: "x",  label: "AI upscaling çarpanı" },
+  { end: 12400,  suffix: "+", label: "Images Converted" },
+  { end: 98,     suffix: "%", label: "Satisfaction Rate" },
+  { end: 3,      suffix: "s",  label: "Avg. Processing Time" },
+  { end: 4,      suffix: "x",  label: "AI Upscaling Factor" },
 ];
 
 

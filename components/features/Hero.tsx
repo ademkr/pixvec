@@ -54,7 +54,7 @@ export function Hero() {
               className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-4 py-1.5 text-sm text-brand-purple"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              AI Destekli Vektörizasyon
+              AI-Powered Vectorization
             </motion.div>
 
             {/* Başlık */}
@@ -64,12 +64,12 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.05 }}
               className="mb-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
             >
-              Pixel&apos;den{" "}
+              Pixel to{" "}
               <span className="bg-gradient-to-r from-brand-purple to-brand-cyan bg-clip-text text-transparent">
-                Vector&apos;e
+                Vector
               </span>
               ,<br />
-              saniyeler içinde
+              in Seconds
             </motion.h1>
 
             {/* Alt başlık */}
@@ -79,9 +79,8 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="mb-8 max-w-xl text-base text-muted-foreground sm:text-lg lg:mx-0"
             >
-              AI destekli vektörizasyon. Tarayıcıda anlık önizleme, sunucuda
-              yüksek kalite. Vectorizer.ai&apos;ye güçlü alternatif — ücretsiz
-              başla.
+              AI-powered vectorization. Preview in your browser, high quality on
+              our servers. Start free — no signup required.
             </motion.p>
 
             {/* CTA Butonlar */}
@@ -98,14 +97,14 @@ export function Hero() {
                   "bg-gradient-to-r from-brand-purple to-brand-cyan text-white hover:opacity-90 transition-all hover:scale-[1.02] border-0 gap-2"
                 )}
               >
-                Ücretsiz Dene
+                Try Free
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Button variant="ghost" size="lg" className="gap-2" onClick={() => {
                 document.getElementById("compare")?.scrollIntoView({ behavior: "smooth" });
               }}>
                 <Play className="h-4 w-4" />
-                Nasıl Çalışır
+                How It Works
               </Button>
             </motion.div>
 
@@ -116,7 +115,7 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mt-6 text-xs text-muted-foreground"
             >
-              Kredi kartı gerekmez · Üyelik gerekmez · Anında dene
+              No credit card · No signup · Try instantly
             </motion.p>
           </div>
 
@@ -164,16 +163,16 @@ export function Hero() {
                     {fileName}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Dönüşüm arayüzü Adım 5&apos;te eklenecek
+                    Conversion UI coming in Step 5
                   </p>
                 </>
               ) : (
                 <>
                   <p className="mb-1 text-sm font-semibold text-foreground">
-                    Görseli sürükle ve bırak
+                    Drag &amp; drop your image
                   </p>
                   <p className="mb-4 text-xs text-muted-foreground">
-                    ya da tıkla, dosya seç
+                    or click to browse
                   </p>
                   <div className="flex flex-wrap justify-center gap-1.5">
                     {["PNG", "JPG", "WEBP", "BMP", "GIF"].map((fmt) => (
@@ -194,7 +193,7 @@ export function Hero() {
 
             {/* Alt bilgi */}
             <p className="mt-3 text-center text-xs text-muted-foreground">
-              Max 10 MB · Görsel sunucuya gönderilmeden önizleme oluşturulur
+              Max 10 MB · Preview generated locally — your image never leaves your browser
             </p>
           </motion.div>
         </div>

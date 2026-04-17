@@ -40,7 +40,7 @@ export function ThemeToggle() {
         variant="ghost"
         size="icon"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Tema seç"
+        aria-label="Select theme"
         aria-expanded={open}
       >
         <Icon className="h-4 w-4" />

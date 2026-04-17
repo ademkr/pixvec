@@ -23,44 +23,44 @@ interface FeatureCard {
 const FEATURES: FeatureCard[] = [
   {
     icon: Zap,
-    title: "Tarayıcıda Anında Önizleme",
+    title: "Instant Browser Preview",
     description:
-      "Görseliniz sunucuya gönderilmeden sonucu görün — gizlilik ve hız bir arada.",
-    detail: "WebAssembly ile %100 yerel işleme",
+      "See the result before sending anything to a server — privacy and speed combined.",
+    detail: "100% local processing via WebAssembly",
     wide: true,
     accent: "purple",
   },
   {
     icon: GitCompare,
-    title: "3 Farklı Sonuç, 1 Tıkla",
+    title: "3 Results, 1 Click",
     description:
-      "Aynı görseli 3 farklı algoritmaya denetin — en beğendiğiniz sonucu seçin.",
+      "Run the same image through 3 different algorithms — pick the result you like best.",
     accent: "cyan",
   },
   {
     icon: Sparkles,
     title: "AI Upscaling + Vectorize",
     description:
-      "Düşük çözünürlüklü görseli önce AI ile büyütüp sonra vektörize ediyoruz.",
+      "We upscale low-resolution images with AI first, then vectorize for cleaner results.",
     accent: "purple",
   },
   {
     icon: Palette,
-    title: "Artistik Modlar",
-    description: "Posterize, curvy, sharp, artistic — 10+ stil preseti ile yaratıcı dönüşümler.",
+    title: "Artistic Modes",
+    description: "Posterize, curvy, sharp, artistic — 10+ style presets for creative conversions.",
     accent: "teal",
   },
   {
     icon: FileDown,
-    title: "Çoklu Format",
-    description: "SVG, PDF, EPS, DXF — istediğin formatta, tek tıkla indir.",
+    title: "Multiple Formats",
+    description: "SVG, PDF, EPS, DXF — download in any format with a single click.",
     accent: "emerald",
   },
   {
     icon: Files,
     title: "Batch Processing",
-    description: "10+ dosyayı aynı anda yükleyin, tek ZIP olarak indirin.",
-    detail: "Pro plan ile 100 dosya/seferde",
+    description: "Upload 10+ files at once and download them all as a single ZIP.",
+    detail: "Up to 100 files per batch on Pro",
     wide: true,
     accent: "cyan",
   },
@@ -138,17 +138,17 @@ export function FeaturesGrid() {
           className="mb-12 text-center"
         >
           <p className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-            Özellikler
+            Features
           </p>
           <h2 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
-            Neden{" "}
+            Why{" "}
             <span className="bg-gradient-to-r from-brand-purple to-brand-cyan bg-clip-text text-transparent">
               Pixvec?
             </span>
           </h2>
           <p className="mx-auto max-w-xl text-muted-foreground">
-            Geleneksel vektörizasyon araçlarının ötesinde — tarayıcı içi önizleme,
-            artistik modlar ve AI upscaling ile yeni nesil deneyim.
+            Beyond traditional vectorization tools — browser-side preview,
+            artistic modes, and AI upscaling for a next-generation experience.
           </p>
         </motion.div>
 
