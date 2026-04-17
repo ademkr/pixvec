@@ -22,37 +22,46 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://pixvec.co"),
   title: {
     default: "Pixvec — AI-Powered Image Vectorization",
     template: "%s | Pixvec",
   },
   description:
-    "Convert PNG, JPG images to SVG vectors instantly. Free browser preview, AI upscaling, multiple engines. No signup required.",
+    "Convert PNG, JPG images to clean SVG vectors instantly. Free browser preview, AI upscaling, multiple engines. No signup required.",
   keywords: [
     "image to svg",
-    "png to vector",
     "vectorize image",
+    "png to vector",
     "jpg to svg",
     "raster to vector",
-    "ai vectorizer",
+    "image vectorizer",
+    "svg converter",
+    "ai vectorization",
+    "free vectorizer",
   ],
   authors: [{ name: "Pixvec" }],
   creator: "Pixvec",
-  metadataBase: new URL("https://pixvec.co"),
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://pixvec.co",
-    title: "Pixvec — AI-Powered Image Vectorization",
-    description:
-      "Convert PNG, JPG images to SVG vectors instantly. Free browser preview, AI upscaling, multiple engines.",
     siteName: "Pixvec",
+    title: "Pixvec — Pixel to Vector, in Seconds",
+    description:
+      "AI-powered image vectorization. Preview in your browser, high quality on our servers. Free — no signup required.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Pixvec - AI Image Vectorization" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pixvec — AI-Powered Image Vectorization",
+    title: "Pixvec — Pixel to Vector, in Seconds",
     description:
-      "Convert PNG, JPG images to SVG vectors instantly. Free browser preview, AI upscaling, multiple engines.",
+      "AI-powered image vectorization. Free browser preview, multiple engines, no signup required.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
