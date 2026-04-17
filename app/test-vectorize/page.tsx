@@ -1,23 +1,47 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { vectorize } from "@/lib/wasm/vtracer";
+
+type Mode = "spline" | "polygon" | "pixel";
 
 export default function TestVectorizePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageDataRef = useRef<ImageData | null>(null);
+
   const [svgOutput, setSvgOutput] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [status, setStatus] = useState<"idle" | "processing" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
+  const [filterSpeckle, setFilterSpeckle] = useState(2);
+  const [colorPrecision, setColorPrecision] = useState(8);
+  const [mode, setMode] = useState<Mode>("spline");
+
+  const runVectorize = useCallback(async (
+    imgData: ImageData,
+    fs: number,
+    cp: number,
+    m: Mode,
+  ) => {
+    setSvgOutput(null);
+    setError(null);
+    setStatus("processing");
+    try {
+      const t0 = performance.now();
+      const svg = await vectorize(imgData, { filterSpeckle: fs, colorPrecision: cp, mode: m });
+      setElapsed(Math.round(performance.now() - t0));
+      setSvgOutput(svg);
+      setStatus("done");
+    } catch (err) {
+      setError(String(err));
+      setStatus("error");
+    }
+  }, []);
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setSvgOutput(null);
-    setElapsed(null);
-    setError(null);
-    setStatus("processing");
 
     const img = new Image();
     img.src = URL.createObjectURL(file);
@@ -29,22 +53,37 @@ export default function TestVectorizePage() {
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(img, 0, 0);
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    imageDataRef.current = imgData;
+    runVectorize(imgData, filterSpeckle, colorPrecision, mode);
+  }
 
-    try {
-      const t0 = performance.now();
-      const svg = await vectorize(imageData);
-      setElapsed(Math.round(performance.now() - t0));
-      setSvgOutput(svg);
-      setStatus("done");
-    } catch (err) {
-      setError(String(err));
-      setStatus("error");
+  function handleParamChange(
+    fs: number,
+    cp: number,
+    m: Mode,
+  ) {
+    setFilterSpeckle(fs);
+    setColorPrecision(cp);
+    setMode(m);
+    if (imageDataRef.current) {
+      runVectorize(imageDataRef.current, fs, cp, m);
     }
   }
 
+  function downloadSvg() {
+    if (!svgOutput) return;
+    const blob = new Blob([svgOutput], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "output.svg";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
-    <div style={{ padding: 24, fontFamily: "monospace" }}>
+    <div style={{ padding: 24, fontFamily: "monospace", maxWidth: 1200 }}>
       <h1 style={{ marginBottom: 16 }}>VTracer WASM — Test Page</h1>
 
       <input
@@ -54,22 +93,57 @@ export default function TestVectorizePage() {
         style={{ marginBottom: 16, display: "block" }}
       />
 
-      {status === "processing" && (
-        <p style={{ color: "#6C63FF", marginBottom: 16 }}>⏳ Processing...</p>
-      )}
+      {/* Controls */}
+      <div style={{ display: "flex", gap: 32, marginBottom: 16, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          filterSpeckle: <strong>{filterSpeckle}</strong>
+          <input
+            type="range" min={0} max={10} value={filterSpeckle}
+            onChange={(e) => handleParamChange(+e.target.value, colorPrecision, mode)}
+          />
+        </label>
 
+        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          colorPrecision: <strong>{colorPrecision}</strong>
+          <input
+            type="range" min={1} max={8} value={colorPrecision}
+            onChange={(e) => handleParamChange(filterSpeckle, +e.target.value, mode)}
+          />
+        </label>
+
+        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          mode:
+          <select
+            value={mode}
+            onChange={(e) => handleParamChange(filterSpeckle, colorPrecision, e.target.value as Mode)}
+            style={{ padding: "4px 8px" }}
+          >
+            <option value="spline">spline</option>
+            <option value="polygon">polygon</option>
+            <option value="pixel">pixel</option>
+          </select>
+        </label>
+      </div>
+
+      {/* Status */}
+      {status === "processing" && (
+        <p style={{ color: "#6C63FF", marginBottom: 12 }}>⏳ Processing...</p>
+      )}
       {status === "done" && elapsed !== null && (
-        <p style={{ color: "green", marginBottom: 16 }}>
+        <p style={{ color: "green", marginBottom: 12 }}>
           ✓ Done in <strong>{elapsed} ms</strong>
+          {" "}
+          <button onClick={downloadSvg} style={{ marginLeft: 12, cursor: "pointer", padding: "2px 10px" }}>
+            Download SVG
+          </button>
         </p>
       )}
-
       {status === "error" && (
-        <p style={{ color: "red", marginBottom: 16 }}>✗ Error: {error}</p>
+        <p style={{ color: "red", marginBottom: 12 }}>✗ Error: {error}</p>
       )}
 
+      {/* Output */}
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
-        {/* Original */}
         <div>
           <p style={{ marginBottom: 8, fontWeight: "bold" }}>Original</p>
           <canvas
@@ -78,7 +152,6 @@ export default function TestVectorizePage() {
           />
         </div>
 
-        {/* SVG output */}
         {svgOutput && (
           <div>
             <p style={{ marginBottom: 8, fontWeight: "bold" }}>Vector (SVG)</p>
