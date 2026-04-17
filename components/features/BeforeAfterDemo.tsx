@@ -39,7 +39,7 @@ export function BeforeAfterDemo() {
   const USE_REAL_IMAGES = false;
 
   return (
-    <section id="compare" className="py-20 sm:py-28 bg-muted/20">
+    <section id="compare" className="py-12 sm:py-20 lg:py-28 bg-muted/20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
 
         {/* Başlık */}
@@ -48,7 +48,7 @@ export function BeforeAfterDemo() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.5 }}
-          className="mb-12 text-center"
+          className="mb-8 sm:mb-12 text-center"
         >
           <p className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
             Live Comparison

@@ -49,7 +49,7 @@ const STATS: StatProps[] = [
 
 export function SocialProof() {
   return (
-    <section className="border-y border-border/50 bg-muted/30 py-14">
+    <section className="border-y border-border/50 bg-muted/30 py-10 sm:py-14">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
 
         {/* İstatistikler */}

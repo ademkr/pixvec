@@ -34,7 +34,7 @@ export function Hero() {
   }
 
   return (
-    <section className="relative overflow-hidden py-20 sm:py-28 lg:py-36">
+    <section className="relative overflow-hidden py-12 sm:py-20 lg:py-28">
       {/* Gradient mesh arka plan */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-brand-purple/20 blur-[120px]" />
@@ -43,7 +43,7 @@ export function Hero() {
       </div>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-16">
+        <div className="flex flex-col items-center gap-8 sm:gap-12 lg:flex-row lg:gap-16">
           {/* Sol: Metin */}
           <div className="flex-1 text-center lg:text-left">
             {/* Badge */}
@@ -51,7 +51,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-4 py-1.5 text-sm text-brand-purple"
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-purple/30 bg-brand-purple/10 px-4 py-1.5 text-sm text-brand-purple"
             >
               <Sparkles className="h-3.5 w-3.5" />
               AI-Powered Vectorization
@@ -62,7 +62,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.05 }}
-              className="mb-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+              className="mb-3 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
             >
               Pixel to{" "}
               <span className="bg-gradient-to-r from-brand-purple to-brand-cyan bg-clip-text text-transparent">
@@ -77,7 +77,7 @@ export function Hero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="mb-8 max-w-xl text-base text-muted-foreground sm:text-lg lg:mx-0"
+              className="mb-6 max-w-xl text-base text-muted-foreground sm:text-lg lg:mx-0"
             >
               AI-powered vectorization. Preview in your browser, high quality on
               our servers. Start free — no signup required.

@@ -126,7 +126,7 @@ function FeatureCardItem({ card, index }: { card: FeatureCard; index: number }) 
 
 export function FeaturesGrid() {
   return (
-    <section id="features" className="py-20 sm:py-28">
+    <section id="features" className="py-12 sm:py-20 lg:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
 
         {/* Başlık */}
@@ -135,7 +135,7 @@ export function FeaturesGrid() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.5 }}
-          className="mb-12 text-center"
+          className="mb-8 sm:mb-12 text-center"
         >
           <p className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
             Features
