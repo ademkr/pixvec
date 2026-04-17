@@ -1,36 +1,20 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Upload, ArrowRight, Play, ImageIcon, Sparkles } from "lucide-react";
+import { Upload, ArrowRight, Play, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/gif"];
-
 export function Hero() {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
-
-  function handleFile(file: File) {
-    if (!ACCEPTED.includes(file.type)) return;
-    setFileName(file.name);
-    // Adım 5'te: dönüşüm fonksiyonu burada çağrılacak
-  }
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  }
-
-  function onInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    // Navigation handled by Link — user uploads on /app
   }
 
   return (
@@ -127,69 +111,45 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="w-full max-w-md flex-shrink-0"
           >
-            <div
+            <Link
+              href="/app"
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
-              onDrop={onDrop}
-              onClick={() => inputRef.current?.click()}
+              onDrop={(e) => { onDrop(e); }}
               className={[
-                "relative cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-200",
+                "relative block cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all duration-200",
                 "bg-background/60 backdrop-blur-sm",
                 dragOver
                   ? "border-brand-purple bg-brand-purple/10 scale-[1.01]"
-                  : "border-border hover:border-brand-purple/50 hover:bg-brand-purple/5",
+                  : "border-border hover:border-brand-purple/50 hover:bg-brand-purple/5 hover:scale-[1.01]",
               ].join(" ")}
             >
-              <input
-                ref={inputRef}
-                type="file"
-                accept={ACCEPTED.join(",")}
-                className="hidden"
-                onChange={onInputChange}
-              />
 
               {/* İkon */}
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-purple/20 to-brand-cyan/20">
-                {fileName ? (
-                  <ImageIcon className="h-7 w-7 text-brand-purple" />
-                ) : (
-                  <Upload className="h-7 w-7 text-brand-purple" />
-                )}
+                <Upload className="h-7 w-7 text-brand-purple" />
               </div>
 
-              {fileName ? (
-                <>
-                  <p className="mb-1 text-sm font-medium text-foreground truncate px-4">
-                    {fileName}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Conversion UI coming in Step 5
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="mb-1 text-sm font-semibold text-foreground">
-                    Drag &amp; drop your image
-                  </p>
-                  <p className="mb-4 text-xs text-muted-foreground">
-                    or click to browse
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-1.5">
-                    {["PNG", "JPG", "WEBP", "BMP", "GIF"].map((fmt) => (
-                      <span
-                        key={fmt}
-                        className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
-                      >
-                        {fmt}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
+              <p className="mb-1 text-sm font-semibold text-foreground">
+                Drag &amp; drop your image
+              </p>
+              <p className="mb-4 text-xs text-muted-foreground">
+                or click to open converter
+              </p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {["PNG", "JPG", "WEBP", "BMP", "GIF"].map((fmt) => (
+                  <span
+                    key={fmt}
+                    className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+                  >
+                    {fmt}
+                  </span>
+                ))}
+              </div>
 
               {/* Glassmorphism iç glow */}
               <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-white/5 to-transparent" />
-            </div>
+            </Link>
 
             {/* Alt bilgi */}
             <p className="mt-3 text-center text-xs text-muted-foreground">
