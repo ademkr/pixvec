@@ -40,7 +40,8 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 120_000);
 
-      const res = await fetch("/api/vectorize", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/vectorize";
+      const res = await fetch(`${apiUrl}/vectorize`, {
         method: "POST",
         body: form,
         signal: controller.signal,

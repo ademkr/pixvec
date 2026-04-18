@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+vtracer
+python-multipart
+Pillow
