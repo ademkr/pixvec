@@ -10,11 +10,40 @@ import { cn } from "@/lib/utils";
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/bmp"];
 
 type Status = "idle" | "processing" | "done" | "error";
+type PresetKey = "logo" | "drawing" | "photo" | "custom";
+
+interface VConfig {
+  filterSpeckle: number;
+  colorPrecision: number;
+  cornerThreshold: number;
+  lengthThreshold: number;
+  spliceThreshold: number;
+  maxIterations: number;
+  mode: "spline" | "polygon";
+  pathPrecision: number;
+  layerDifference: number;
+}
+
+const PRESETS: Record<Exclude<PresetKey, "custom">, VConfig> = {
+  logo: {
+    filterSpeckle: 2, colorPrecision: 8, cornerThreshold: 60,
+    lengthThreshold: 4, spliceThreshold: 45, maxIterations: 10,
+    mode: "spline", pathPrecision: 8, layerDifference: 16,
+  },
+  drawing: {
+    filterSpeckle: 1, colorPrecision: 8, cornerThreshold: 45,
+    lengthThreshold: 3, spliceThreshold: 30, maxIterations: 15,
+    mode: "spline", pathPrecision: 8, layerDifference: 16,
+  },
+  photo: {
+    filterSpeckle: 4, colorPrecision: 6, cornerThreshold: 90,
+    lengthThreshold: 5, spliceThreshold: 60, maxIterations: 10,
+    mode: "spline", pathPrecision: 6, layerDifference: 8,
+  },
+};
 
 interface Props {
-  /** Called when user clears the file (Hero uses this to return to landing state) */
   onClear?: () => void;
-  /** If provided, auto-loads this file on mount */
   initialFile?: File | null;
 }
 
@@ -30,18 +59,19 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
   const [elapsed, setElapsed] = useState<number | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [filterSpeckle, setFilterSpeckle] = useState(4);
-  const [mode, setMode] = useState<"spline" | "polygon">("spline");
   const [fileName, setFileName] = useState<string | null>(null);
 
-  const runVectorize = useCallback(async (imgData: ImageData, fs: number, m: "spline" | "polygon") => {
+  const [preset, setPreset] = useState<PresetKey>("logo");
+  const [cfg, setCfg] = useState<VConfig>(PRESETS.logo);
+
+  const runVectorize = useCallback(async (imgData: ImageData, config: VConfig) => {
     setSvgOutput(null);
     setSvgBlob(null);
     setError(null);
     setStatus("processing");
     try {
       const t0 = performance.now();
-      const svg = await vectorize(imgData, { filterSpeckle: fs, mode: m });
+      const svg = await vectorize(imgData, config);
       setElapsed(Math.round(performance.now() - t0));
       setSvgOutput(svg);
       setSvgBlob(URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })));
@@ -70,10 +100,10 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
 
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     imageDataRef.current = imgData;
-    runVectorize(imgData, filterSpeckle, mode);
-  }, [filterSpeckle, mode, runVectorize]);
+    runVectorize(imgData, cfg);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runVectorize]); // cfg intentionally excluded — uses latest on drop
 
-  // Auto-load initial file (e.g. dropped on Hero)
   useEffect(() => {
     if (initialFile) loadFile(initialFile);
   }, [initialFile, loadFile]);
@@ -85,14 +115,25 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
     if (file) loadFile(file);
   }
 
+  function applyPreset(key: Exclude<PresetKey, "custom">) {
+    const next = PRESETS[key];
+    setPreset(key);
+    setCfg(next);
+    if (imageDataRef.current) runVectorize(imageDataRef.current, next);
+  }
+
   function handleSpeckleChange(val: number) {
-    setFilterSpeckle(val);
-    if (imageDataRef.current) runVectorize(imageDataRef.current, val, mode);
+    const next = { ...cfg, filterSpeckle: val };
+    setCfg(next);
+    setPreset("custom");
+    if (imageDataRef.current) runVectorize(imageDataRef.current, next);
   }
 
   function handleModeChange(m: "spline" | "polygon") {
-    setMode(m);
-    if (imageDataRef.current) runVectorize(imageDataRef.current, filterSpeckle, m);
+    const next = { ...cfg, mode: m };
+    setCfg(next);
+    setPreset("custom");
+    if (imageDataRef.current) runVectorize(imageDataRef.current, next);
   }
 
   function downloadSvg() {
@@ -170,19 +211,46 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
             className="rounded-xl border border-border bg-card/60 p-4">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Settings</p>
             <div className="flex flex-col gap-4">
+
+              {/* Presets */}
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="text-sm text-foreground">Preset</label>
+                  {preset === "custom" && (
+                    <span className="text-xs text-muted-foreground">Custom</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["logo", "drawing", "photo"] as const).map((p) => (
+                    <button key={p} onClick={() => applyPreset(p)}
+                      className={cn(
+                        "rounded-lg border px-2 py-1.5 text-xs font-medium capitalize transition-colors",
+                        preset === p
+                          ? "border-brand-purple bg-brand-purple/10 text-brand-purple"
+                          : "border-border text-muted-foreground hover:border-border/80 hover:text-foreground"
+                      )}>
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Detail level */}
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className="text-sm text-foreground">Detail level</label>
-                  <span className="text-xs text-muted-foreground">{filterSpeckle}</span>
+                  <span className="text-xs text-muted-foreground">{cfg.filterSpeckle}</span>
                 </div>
-                <input type="range" min={0} max={10} value={filterSpeckle}
-                  onChange={(e) => setFilterSpeckle(+e.target.value)}
+                <input type="range" min={0} max={10} value={cfg.filterSpeckle}
+                  onChange={(e) => setCfg((c) => ({ ...c, filterSpeckle: +e.target.value }))}
                   onPointerUp={(e) => handleSpeckleChange(+(e.target as HTMLInputElement).value)}
                   className="w-full accent-[#6C63FF]" />
                 <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                   <span>More detail</span><span>Less noise</span>
                 </div>
               </div>
+
+              {/* Path style */}
               <div>
                 <label className="mb-1.5 block text-sm text-foreground">Path style</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -190,7 +258,7 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
                     <button key={m} onClick={() => handleModeChange(m)}
                       className={cn(
                         "rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-colors",
-                        mode === m
+                        cfg.mode === m
                           ? "border-brand-purple bg-brand-purple/10 text-brand-purple"
                           : "border-border text-muted-foreground hover:border-border/80 hover:text-foreground"
                       )}>
