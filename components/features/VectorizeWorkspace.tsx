@@ -24,18 +24,24 @@ interface VConfig {
   layerDifference: number;
 }
 
-// Base config confirmed working (matches the debug session that returned SVG in 24ms).
-// Only filterSpeckle varies between presets — other params kept at safe values.
-const BASE: Omit<VConfig, "filterSpeckle"> = {
-  colorPrecision: 6, cornerThreshold: 60, lengthThreshold: 4,
-  spliceThreshold: 45, maxIterations: 10,
-  mode: "polygon", pathPrecision: 8, layerDifference: 16,
+// Exact defaults from visioncortex.org/vtracer official site.
+// Field mapping: gradientStep→layerDifference, segmentLength→lengthThreshold
+const OFFICIAL_DEFAULT: VConfig = {
+  filterSpeckle: 4,
+  colorPrecision: 6,
+  layerDifference: 16,   // gradientStep on official site
+  cornerThreshold: 60,
+  lengthThreshold: 4,    // segmentLength on official site
+  spliceThreshold: 45,
+  pathPrecision: 8,
+  mode: "spline",
+  maxIterations: 10,
 };
 
 const PRESETS: Record<Exclude<PresetKey, "custom">, VConfig> = {
-  logo:    { ...BASE, filterSpeckle: 1 }, // max detail
-  drawing: { ...BASE, filterSpeckle: 2 },
-  photo:   { ...BASE, filterSpeckle: 4 }, // more noise reduction
+  logo:    { ...OFFICIAL_DEFAULT },
+  drawing: { ...OFFICIAL_DEFAULT },
+  photo:   { ...OFFICIAL_DEFAULT },
 };
 
 interface Props {
@@ -58,13 +64,14 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
   const [fileName, setFileName] = useState<string | null>(null);
 
   const [preset, setPreset] = useState<PresetKey>("logo");
-  const [cfg, setCfg] = useState<VConfig>({ ...PRESETS.logo });
+  const [cfg, setCfg] = useState<VConfig>({ ...OFFICIAL_DEFAULT });
 
   const runVectorize = useCallback(async (imgData: ImageData, config: VConfig) => {
     setSvgOutput(null);
     setSvgBlob(null);
     setError(null);
     setStatus("processing");
+    console.log("[Pixvec] Vectorizing with config:", JSON.stringify(config));
     try {
       const t0 = performance.now();
       const svg = await vectorize(imgData, config);
