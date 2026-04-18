@@ -2,10 +2,13 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, ImageIcon, X, Sparkles, Bell } from "lucide-react";
+import { Upload, ImageIcon, X, Download, AlertCircle, Loader2 } from "lucide-react";
+import { ReactCompareSlider, ReactCompareSliderImage } from "react-compare-slider";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/bmp"];
+
+type Status = "idle" | "processing" | "done" | "error";
 
 interface Props {
   onClear?: () => void;
@@ -17,14 +20,64 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [originalSrc, setOriginalSrc] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [svgContent, setSvgContent] = useState<string | null>(null);
+  const [svgUrl, setSvgUrl] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [largeFile, setLargeFile] = useState(false);
+
+  const vectorize = useCallback(async (file: File, objectUrl: string) => {
+    setStatus("processing");
+    setErrorMsg(null);
+    setSvgContent(null);
+    setSvgUrl(null);
+    setLargeFile(file.size > 1_000_000);
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 120_000);
+
+      const res = await fetch("/api/vectorize", {
+        method: "POST",
+        body: form,
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(body.error ?? `Server error ${res.status}`);
+      }
+
+      const svg = await res.text();
+      const blob = new Blob([svg], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+
+      setSvgContent(svg);
+      setSvgUrl(url);
+      setStatus("done");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : String(err));
+      setStatus("error");
+    }
+
+    // keep objectUrl alive — cleaned up on next loadFile or unmount
+    void objectUrl;
+  }, []);
 
   const loadFile = useCallback((file: File) => {
     if (!ACCEPTED.includes(file.type)) return;
     setFileName(file.name);
-    setOriginalSrc(URL.createObjectURL(file));
-  }, []);
+    const url = URL.createObjectURL(file);
+    setOriginalSrc(url);
+    setStatus("idle");
+    setSvgContent(null);
+    setSvgUrl(null);
+    vectorize(file, url);
+  }, [vectorize]);
 
   useEffect(() => {
     if (initialFile) loadFile(initialFile);
@@ -37,9 +90,13 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
     if (file) loadFile(file);
   }
 
-  function handleNotify(e: React.FormEvent) {
-    e.preventDefault();
-    if (email) setSubmitted(true);
+  function handleDownload() {
+    if (!svgContent || !fileName) return;
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName.replace(/\.[^.]+$/, "") + ".svg";
+    a.click();
   }
 
   return (
@@ -94,7 +151,7 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
         {originalSrc && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="overflow-hidden rounded-xl border border-border bg-card/60">
-            <p className="border-b border-border/50 px-3 py-2 text-xs font-medium text-muted-foreground">Your image</p>
+            <p className="border-b border-border/50 px-3 py-2 text-xs font-medium text-muted-foreground">Original</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={originalSrc} alt="Uploaded" className="w-full object-contain" style={{ maxHeight: 200 }} />
           </motion.div>
@@ -110,62 +167,93 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
         )}
       </div>
 
-      {/* ── Right panel: coming soon ── */}
+      {/* ── Right panel: result ── */}
       <div className="flex flex-1 items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-md rounded-2xl border border-brand-purple/20 bg-brand-purple/5 p-8 text-center"
-        >
-          {/* Icon */}
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-purple/20 to-brand-cyan/20">
-            <Sparkles className="h-6 w-6 text-brand-purple" />
-          </div>
 
-          <h3 className="mb-2 text-lg font-semibold text-foreground">
-            Vectorization Engine Coming Soon
-          </h3>
-          <p className="mb-6 text-sm text-muted-foreground">
-            We&apos;re building a high-quality server-side vectorization engine.
-            Sign up to get early access when it launches.
-          </p>
+        {/* Idle — no file yet */}
+        {status === "idle" && !originalSrc && (
+          <p className="text-sm text-muted-foreground">Upload an image to get started.</p>
+        )}
 
-          {submitted ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center gap-2"
+        {/* Processing */}
+        {status === "processing" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center gap-4 text-center"
+          >
+            <Loader2 className="h-10 w-10 animate-spin text-brand-purple" />
+            <p className="text-sm font-medium text-foreground">Vectorizing…</p>
+            <p className="text-xs text-muted-foreground">
+              {largeFile
+                ? "Large image — processing may take up to a minute"
+                : "This usually takes a few seconds"}
+            </p>
+          </motion.div>
+        )}
+
+        {/* Error */}
+        {status === "error" && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center"
+          >
+            <AlertCircle className="h-8 w-8 text-destructive" />
+            <p className="text-sm font-medium text-destructive">Vectorization failed</p>
+            <p className="max-w-xs text-xs text-muted-foreground">{errorMsg}</p>
+            <button
+              onClick={() => { if (inputRef.current) inputRef.current.click(); }}
+              className="mt-1 rounded-xl border border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-brand-purple/50 hover:text-foreground"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-emerald/20">
-                <Bell className="h-5 w-5 text-brand-emerald" />
-              </div>
-              <p className="text-sm font-medium text-foreground">You&apos;re on the list!</p>
-              <p className="text-xs text-muted-foreground">We&apos;ll notify you at <span className="text-foreground">{email}</span></p>
-            </motion.div>
-          ) : (
-            <form onSubmit={handleNotify} className="flex flex-col gap-2 sm:flex-row">
-              <input
-                type="email"
-                required
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand-purple focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="rounded-xl bg-gradient-to-r from-brand-purple to-brand-cyan px-5 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90"
-              >
-                Notify Me
-              </button>
-            </form>
-          )}
+              Try another image
+            </button>
+          </motion.div>
+        )}
 
-          <p className="mt-4 text-xs text-muted-foreground">
-            No spam, unsubscribe anytime.
-          </p>
-        </motion.div>
+        {/* Done — before/after slider */}
+        {status === "done" && originalSrc && svgUrl && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex w-full flex-col gap-4"
+          >
+            {/* Slider */}
+            <div className="overflow-hidden rounded-2xl border border-border">
+              <ReactCompareSlider
+                itemOne={
+                  <ReactCompareSliderImage src={originalSrc} alt="Original" style={{ objectFit: "contain" }} />
+                }
+                itemTwo={
+                  <ReactCompareSliderImage src={svgUrl} alt="Vector SVG" style={{ objectFit: "contain" }} />
+                }
+                style={{ width: "100%", maxHeight: 480 }}
+              />
+            </div>
+
+            {/* Labels + download */}
+            <div className="flex items-center justify-between">
+              <div className="flex gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-muted-foreground/50" />
+                  Original
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-brand-purple" />
+                  Vector SVG
+                </span>
+              </div>
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-purple to-brand-cyan px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
+              >
+                <Download className="h-4 w-4" />
+                Download SVG
+              </button>
+            </div>
+          </motion.div>
+        )}
+
       </div>
     </div>
   );
