@@ -24,22 +24,18 @@ interface VConfig {
   layerDifference: number;
 }
 
+// Base config confirmed working (matches the debug session that returned SVG in 24ms).
+// Only filterSpeckle varies between presets — other params kept at safe values.
+const BASE: Omit<VConfig, "filterSpeckle"> = {
+  colorPrecision: 6, cornerThreshold: 60, lengthThreshold: 4,
+  spliceThreshold: 45, maxIterations: 10,
+  mode: "spline", pathPrecision: 8, layerDifference: 16,
+};
+
 const PRESETS: Record<Exclude<PresetKey, "custom">, VConfig> = {
-  logo: {
-    filterSpeckle: 2, colorPrecision: 8, cornerThreshold: 60,
-    lengthThreshold: 4, spliceThreshold: 45, maxIterations: 10,
-    mode: "spline", pathPrecision: 8, layerDifference: 16,
-  },
-  drawing: {
-    filterSpeckle: 1, colorPrecision: 8, cornerThreshold: 45,
-    lengthThreshold: 3, spliceThreshold: 30, maxIterations: 15,
-    mode: "spline", pathPrecision: 8, layerDifference: 16,
-  },
-  photo: {
-    filterSpeckle: 4, colorPrecision: 6, cornerThreshold: 90,
-    lengthThreshold: 5, spliceThreshold: 60, maxIterations: 10,
-    mode: "spline", pathPrecision: 6, layerDifference: 8,
-  },
+  logo:    { ...BASE, filterSpeckle: 1 }, // max detail
+  drawing: { ...BASE, filterSpeckle: 2 },
+  photo:   { ...BASE, filterSpeckle: 4 }, // more noise reduction
 };
 
 interface Props {
