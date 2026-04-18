@@ -29,7 +29,7 @@ interface VConfig {
 const BASE: Omit<VConfig, "filterSpeckle"> = {
   colorPrecision: 6, cornerThreshold: 60, lengthThreshold: 4,
   spliceThreshold: 45, maxIterations: 10,
-  mode: "spline", pathPrecision: 8, layerDifference: 16,
+  mode: "polygon", pathPrecision: 8, layerDifference: 16,
 };
 
 const PRESETS: Record<Exclude<PresetKey, "custom">, VConfig> = {
@@ -58,7 +58,7 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
   const [fileName, setFileName] = useState<string | null>(null);
 
   const [preset, setPreset] = useState<PresetKey>("logo");
-  const [cfg, setCfg] = useState<VConfig>(PRESETS.logo);
+  const [cfg, setCfg] = useState<VConfig>({ ...PRESETS.logo });
 
   const runVectorize = useCallback(async (imgData: ImageData, config: VConfig) => {
     setSvgOutput(null);
@@ -91,10 +91,23 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
     const canvas = canvasRef.current!;
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext("2d")!;
+
+    // Always use 2d context with willReadFrequently for pixel extraction.
+    // For JPEG (no alpha), canvas.getImageData still produces RGBA with alpha=255 — correct for VTracer.
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+
+    // Fill white background first so transparent PNGs don't produce alpha=0 pixels
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0);
 
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    console.log("[Pixvec] File type:", file.type);
+    console.log("[Pixvec] Canvas size:", canvas.width, "x", canvas.height);
+    console.log("[Pixvec] ImageData bytes:", imgData.data.length, "(expected:", canvas.width * canvas.height * 4, ")");
+    console.log("[Pixvec] First 8 pixels (RGBA):", Array.from(imgData.data.slice(0, 32)));
+
     imageDataRef.current = imgData;
     runVectorize(imgData, cfg);
   // eslint-disable-next-line react-hooks/exhaustive-deps
