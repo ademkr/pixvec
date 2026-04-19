@@ -43,27 +43,49 @@ async def vectorize(file: UploadFile = File(...)):
     out_path: str | None = None
 
     try:
-        # Open with Pillow, apply EXIF orientation, resize if needed
+        original_format = file.content_type
         img = Image.open(io.BytesIO(data))
-        img = ImageOps.exif_transpose(img)  # apply EXIF rotation
+        w, h = img.size
+        is_png = original_format == "image/png"
+        is_jpeg = original_format == "image/jpeg"
+        needs_resize = w > MAX_PX or h > MAX_PX
+        bypass = is_png and not needs_resize
+        resized = False
 
-        if img.width > MAX_PX or img.height > MAX_PX:
-            img.thumbnail((MAX_PX, MAX_PX), Image.LANCZOS)
-
-        # Convert to RGB PNG (vtracer expects non-transparent for color mode)
-        if img.mode in ("RGBA", "LA", "P"):
-            bg = Image.new("RGB", img.size, (255, 255, 255))
-            if img.mode == "P":
-                img = img.convert("RGBA")
-            bg.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
-            img = bg
-        elif img.mode != "RGB":
-            img = img.convert("RGB")
-
-        # Write PNG to temp file
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
             in_path = f.name
-            img.save(f, format="PNG")
+
+            if bypass:
+                # PNG under 2000px — zero Pillow processing
+                f.write(data)
+
+            elif is_png and needs_resize:
+                # PNG over 2000px — resize only, no format conversion
+                img.thumbnail((MAX_PX, MAX_PX), Image.LANCZOS)
+                resized = True
+                w, h = img.size
+                img.save(f, format="PNG", compress_level=0)
+
+            else:
+                # JPEG / WEBP / BMP — convert to lossless PNG
+                if is_jpeg:
+                    img = ImageOps.exif_transpose(img)
+                if img.mode != "RGB":
+                    if img.mode in ("RGBA", "LA", "P"):
+                        if img.mode == "P":
+                            img = img.convert("RGBA")
+                        bg = Image.new("RGB", img.size, (255, 255, 255))
+                        bg.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
+                        img = bg
+                    else:
+                        img = img.convert("RGB")
+                if needs_resize:
+                    img.thumbnail((MAX_PX, MAX_PX), Image.LANCZOS)
+                    resized = True
+                    w, h = img.size
+                img.save(f, format="PNG", compress_level=0)
+
+        print(f"[pixvec] bypass={bypass}, resize={resized}, format={original_format}, size={w}x{h}")
 
         with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as f:
             out_path = f.name
