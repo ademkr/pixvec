@@ -52,7 +52,7 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
       const timer = setTimeout(() => controller.abort(), 120_000);
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
-      const res = await fetch(`${apiUrl}/vectorize`, {
+      const res = await fetch(`${apiUrl.replace(/\/$/, "")}/vectorize`, {
         method: "POST",
         body: form,
         signal: controller.signal,
