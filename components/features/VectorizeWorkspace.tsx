@@ -9,6 +9,14 @@ import { cn } from "@/lib/utils";
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/bmp"];
 
 type Status = "idle" | "processing" | "done" | "error";
+type Preset = "drawing" | "photo" | "bw" | "logo";
+
+const PRESETS: { id: Preset; label: string; description: string }[] = [
+  { id: "drawing", label: "Drawing", description: "Best for most images" },
+  { id: "photo",   label: "Photo",   description: "Detailed photos & complex images" },
+  { id: "bw",      label: "B&W",     description: "Clean single-color output" },
+  { id: "logo",    label: "Logo",    description: "Simple logos with white background" },
+];
 
 interface Props {
   onClear?: () => void;
@@ -18,6 +26,7 @@ interface Props {
 export function VectorizeWorkspace({ onClear, initialFile }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
   const [originalSrc, setOriginalSrc] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [svgContent, setSvgContent] = useState<string | null>(null);
@@ -25,22 +34,24 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [largeFile, setLargeFile] = useState(false);
+  const [preset, setPreset] = useState<Preset>("drawing");
 
-  const vectorize = useCallback(async (file: File, objectUrl: string) => {
+  const vectorize = useCallback(async (f: File, preset: Preset) => {
     setStatus("processing");
     setErrorMsg(null);
     setSvgContent(null);
     setSvgUrl(null);
-    setLargeFile(file.size > 1_000_000);
+    setLargeFile(f.size > 1_000_000);
 
     try {
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", f);
+      form.append("preset", preset);
 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 120_000);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/vectorize";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
       const res = await fetch(`${apiUrl}/vectorize`, {
         method: "POST",
         body: form,
@@ -64,31 +75,32 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
       setErrorMsg(err instanceof Error ? err.message : String(err));
       setStatus("error");
     }
-
-    // keep objectUrl alive — cleaned up on next loadFile or unmount
-    void objectUrl;
   }, []);
 
-  const loadFile = useCallback((file: File) => {
-    if (!ACCEPTED.includes(file.type)) return;
-    setFileName(file.name);
-    const url = URL.createObjectURL(file);
+  const loadFile = useCallback((f: File, currentPreset: Preset) => {
+    if (!ACCEPTED.includes(f.type)) return;
+    setFile(f);
+    setFileName(f.name);
+    const url = URL.createObjectURL(f);
     setOriginalSrc(url);
-    setStatus("idle");
-    setSvgContent(null);
-    setSvgUrl(null);
-    vectorize(file, url);
+    vectorize(f, currentPreset);
   }, [vectorize]);
 
   useEffect(() => {
-    if (initialFile) loadFile(initialFile);
-  }, [initialFile, loadFile]);
+    if (initialFile) loadFile(initialFile, preset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFile]);
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) loadFile(file);
+    const f = e.dataTransfer.files[0];
+    if (f) loadFile(f, preset);
+  }
+
+  function handlePreset(p: Preset) {
+    setPreset(p);
+    if (file) vectorize(file, p);
   }
 
   function handleDownload() {
@@ -103,7 +115,7 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
 
-      {/* ── Left panel: upload + preview ── */}
+      {/* ── Left panel ── */}
       <div className="flex flex-col gap-4 lg:w-80 lg:flex-shrink-0">
 
         {/* Upload zone */}
@@ -125,7 +137,7 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
             type="file"
             accept={ACCEPTED.join(",")}
             className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) loadFile(f); }}
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) loadFile(f, preset); }}
           />
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-purple/20 to-brand-cyan/20">
             {originalSrc ? <ImageIcon className="h-5 w-5 text-brand-purple" /> : <Upload className="h-5 w-5 text-brand-purple" />}
@@ -146,6 +158,28 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
               </div>
             </>
           )}
+        </div>
+
+        {/* Preset selector */}
+        <div className="rounded-xl border border-border bg-card/60 p-3">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Preset</p>
+          <div className="flex flex-col gap-1.5">
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => handlePreset(p.id)}
+                className={cn(
+                  "flex items-center justify-between rounded-lg px-3 py-2 text-left transition-colors",
+                  preset === p.id
+                    ? "bg-brand-purple/15 text-brand-purple"
+                    : "hover:bg-muted text-foreground"
+                )}
+              >
+                <span className="text-sm font-medium">{p.label}</span>
+                <span className="text-xs text-muted-foreground">{p.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Original preview */}
@@ -171,12 +205,10 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
       {/* ── Right panel: result ── */}
       <div className="flex flex-1 items-center justify-center">
 
-        {/* Idle — no file yet */}
         {status === "idle" && !originalSrc && (
           <p className="text-sm text-muted-foreground">Upload an image to get started.</p>
         )}
 
-        {/* Processing */}
         {status === "processing" && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -193,7 +225,6 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
           </motion.div>
         )}
 
-        {/* Error */}
         {status === "error" && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -212,14 +243,12 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
           </motion.div>
         )}
 
-        {/* Done — before/after slider */}
         {status === "done" && originalSrc && svgUrl && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex w-full flex-col gap-4"
           >
-            {/* Slider */}
             <div className="overflow-hidden rounded-2xl border border-border">
               <ReactCompareSlider
                 itemOne={
@@ -232,7 +261,6 @@ export function VectorizeWorkspace({ onClear, initialFile }: Props) {
               />
             </div>
 
-            {/* Labels + download */}
             <div className="flex items-center justify-between">
               <div className="flex gap-4 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">

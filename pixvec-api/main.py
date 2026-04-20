@@ -1,11 +1,20 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 import vtracer
 import tempfile
 import os
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 import io
+from typing import Optional
+
+# VTracer parameters per preset
+PRESETS = {
+    "logo":    dict(filter_speckle=4, color_precision=6, gradient_step=16, corner_threshold=60, segment_length=4.0, splice_threshold=45, path_precision=8, mode="spline"),
+    "drawing": dict(filter_speckle=2, color_precision=8, gradient_step=8,  corner_threshold=45, segment_length=3.0, splice_threshold=30, path_precision=8, mode="spline"),
+    "photo":   dict(filter_speckle=8, color_precision=4, gradient_step=32, corner_threshold=90, segment_length=6.0, splice_threshold=60, path_precision=6, mode="spline"),
+    "bw":      dict(filter_speckle=4, color_precision=6, gradient_step=16, corner_threshold=60, segment_length=4.0, splice_threshold=45, path_precision=8, mode="spline"),
+}
 
 app = FastAPI(title="pixvec-api")
 
@@ -25,15 +34,53 @@ MAX_PX = 2000
 ACCEPTED = {"image/png", "image/jpeg", "image/webp", "image/bmp"}
 
 
+
+def to_rgb(img: Image.Image) -> Image.Image:
+    """Flatten any alpha onto white, return RGB."""
+    if img.mode in ("RGBA", "LA", "P"):
+        if img.mode == "P":
+            img = img.convert("RGBA")
+        bg = Image.new("RGB", img.size, (255, 255, 255))
+        bg.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
+        return bg
+    return img.convert("RGB") if img.mode != "RGB" else img
+
+
+def preprocess(img: Image.Image, preset: str) -> Image.Image:
+    img = to_rgb(img)
+
+    if preset == "logo":
+        img = ImageEnhance.Contrast(img).enhance(1.3)
+
+    elif preset == "drawing":
+        img = img.quantize(colors=8).convert("RGB")
+        img = img.filter(ImageFilter.SHARPEN)
+
+    elif preset == "photo":
+        img = img.quantize(colors=16).convert("RGB")
+        img = img.filter(ImageFilter.SMOOTH)
+
+    elif preset == "bw":
+        gray = img.convert("L")
+        # Threshold at 128 → pure black/white, then back to RGB for vtracer color mode
+        bw = gray.point(lambda px: 255 if px >= 128 else 0, "L")
+        img = bw.convert("RGB")
+
+    return img
+
+
 @app.get("/")
 def health():
     return {"status": "ok", "service": "pixvec-api"}
 
 
 @app.post("/vectorize")
-async def vectorize(file: UploadFile = File(...)):
+async def vectorize(file: UploadFile = File(...), preset: Optional[str] = Form("logo")):
     if file.content_type not in ACCEPTED:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.content_type}")
+
+    preset = preset if preset in PRESETS else "logo"
+    p = PRESETS[preset]
 
     data = await file.read()
     if len(data) > MAX_BYTES:
@@ -49,52 +96,36 @@ async def vectorize(file: UploadFile = File(...)):
         is_png = original_format == "image/png"
         is_jpeg = original_format == "image/jpeg"
         needs_resize = w > MAX_PX or h > MAX_PX
-        bypass = is_png and not needs_resize
-        resized = False
+        needs_preprocess = preset != "logo" or not is_png  # logo+PNG may still bypass if no bg issue
+        bypass = is_png and not needs_resize and preset == "logo"
 
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
             in_path = f.name
 
             if bypass:
-                # PNG under 2000px — zero Pillow processing
+                # Pure PNG logo under 2000px — skip all Pillow processing
                 f.write(data)
-
-            elif is_png and needs_resize:
-                # PNG over 2000px — resize only, no format conversion
-                img.thumbnail((MAX_PX, MAX_PX), Image.LANCZOS)
-                resized = True
-                w, h = img.size
-                img.save(f, format="PNG", compress_level=0)
-
             else:
-                # JPEG / WEBP / BMP — convert to lossless PNG
                 if is_jpeg:
                     img = ImageOps.exif_transpose(img)
-                if img.mode != "RGB":
-                    if img.mode in ("RGBA", "LA", "P"):
-                        if img.mode == "P":
-                            img = img.convert("RGBA")
-                        bg = Image.new("RGB", img.size, (255, 255, 255))
-                        bg.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
-                        img = bg
-                    else:
-                        img = img.convert("RGB")
                 if needs_resize:
                     img.thumbnail((MAX_PX, MAX_PX), Image.LANCZOS)
-                    resized = True
                     w, h = img.size
+
+                img = preprocess(img, preset)
                 img.save(f, format="PNG", compress_level=0)
 
-        print(f"[pixvec] bypass={bypass}, resize={resized}, format={original_format}, size={w}x{h}")
+        print(f"[pixvec] preset={preset}, bypass={bypass}, resize={needs_resize}, format={original_format}, size={w}x{h}")
 
         with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as f:
             out_path = f.name
 
-        # Positional args required — keyword args cause SIGSEGV on some Python builds
         vtracer.convert_image_to_svg_py(
             in_path, out_path,
-            "color", "stacked", "spline",
-            4, 6, 16, 60, 4.0, 10, 45, 8,
+            "color", "stacked", p["mode"],
+            p["filter_speckle"], p["color_precision"], p["gradient_step"],
+            p["corner_threshold"], p["segment_length"], 10,
+            p["splice_threshold"], p["path_precision"],
         )
 
         with open(out_path, "r", encoding="utf-8") as f:
@@ -107,6 +138,6 @@ async def vectorize(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        for p in (in_path, out_path):
-            if p and os.path.exists(p):
-                os.unlink(p)
+        for path in (in_path, out_path):
+            if path and os.path.exists(path):
+                os.unlink(path)
