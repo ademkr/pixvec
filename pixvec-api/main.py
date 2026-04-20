@@ -23,6 +23,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://pixvec.co",
+        "https://www.pixvec.co",
         "https://pixvec.vercel.app",
     ],
     allow_methods=["GET", "POST"],
